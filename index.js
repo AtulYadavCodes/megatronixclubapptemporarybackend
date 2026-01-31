@@ -34,16 +34,23 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage })
 
 app.post('/file',upload.single('file'),async(req,res)=>{
+    let htmlContent = null;
+    
     try {
         const uploadedpath = req.file.path;
         
         // Extract PDF and generate HTML using Gemini
         console.log('Extracting PDF and generating HTML with Gemini...');
-        const htmlContent = await extractpdf(uploadedpath);
+        htmlContent = await extractpdf(uploadedpath);
+        console.log('Extracted HTML Content:', htmlContent);
         
         if (!htmlContent) {
             return res.status(500).json({
-                error: 'Failed to generate HTML from resume'
+                success: false,
+                error: 'Failed to generate HTML from resume',
+                html: null,
+                github: null,
+                vercel: null
             });
         }
         console.log('✓ HTML generated successfully');
@@ -53,47 +60,78 @@ app.post('/file',upload.single('file'),async(req,res)=>{
         const repoName = `portfolio-${timestamp}`;
         const fileName = 'index.html';
         
-        // Automatically upload to GitHub
+        // Try to upload to GitHub (but don't fail if it doesn't work)
         console.log('Uploading to GitHub...');
-        const uploadResult = await createRepoAndUploadHTML(htmlContent, repoName, fileName);
-        
-        if (!uploadResult.success) {
-            return res.status(500).json({
-                error: 'Failed to upload to GitHub',
-                details: uploadResult
+        try {
+            const uploadResult = await createRepoAndUploadHTML(htmlContent, repoName, fileName);
+            
+            if (!uploadResult.success) {
+                // GitHub upload failed, but still send HTML to frontend
+                return res.status(200).json({
+                    success: true,
+                    html: htmlContent,
+                    github: {
+                        error: 'Failed to upload to GitHub',
+                        details: uploadResult.error || 'Unknown error'
+                    },
+                    vercel: null,
+                    timestamp: Date.now()
+                });
+            }
+            
+            console.log('✓ Uploaded to GitHub successfully');
+            
+            // Generate Vercel deployment URL
+            const githubRepoUrl = `https://github.com/${GITHUB_OWNER}/${repoName}/tree/${uploadResult.repository.defaultBranch}`;
+            const encodedRepoUrl = encodeURIComponent(githubRepoUrl);
+            const vercelDeployUrl = `https://vercel.com/new/clone?repository-url=${encodedRepoUrl}`;
+            
+            console.log('✓ Vercel deployment URL generated');
+            
+            // Send complete success response
+            res.status(200).json({
+                success: true,
+                html: htmlContent,
+                github: {
+                    repository: uploadResult.repository.url,
+                    branch: uploadResult.repository.defaultBranch,
+                    commit: uploadResult.commit
+                },
+                vercel: {
+                    deployUrl: vercelDeployUrl,
+                    instructions: 'Click the URL to deploy on Vercel instantly'
+                },
+                timestamp: uploadResult.timestamp
+            });
+            
+        } catch (githubError) {
+            // GitHub upload threw an error, but we still have HTML
+            console.error('GitHub upload error:', githubError.message);
+            
+            return res.status(200).json({
+                success: true,
+                html: htmlContent,
+                github: {
+                    error: 'GitHub upload failed',
+                    message: githubError.message,
+                    details: githubError.toString()
+                },
+                vercel: null,
+                timestamp: Date.now()
             });
         }
         
-        console.log('✓ Uploaded to GitHub successfully');
-        
-        // Generate Vercel deployment URL
-        const githubRepoUrl = `https://github.com/${GITHUB_OWNER}/${repoName}/tree/${uploadResult.repository.defaultBranch}`;
-        const encodedRepoUrl = encodeURIComponent(githubRepoUrl);
-        const vercelDeployUrl = `https://vercel.com/new/clone?repository-url=${encodedRepoUrl}`;
-        
-        console.log('✓ Vercel deployment URL generated');
-        
-        // Send complete response with HTML, GitHub details, and Vercel URL
-        res.status(200).json({
-            success: true,
-            html: htmlContent,
-            github: {
-                repository: uploadResult.repository.url,
-                branch: uploadResult.repository.defaultBranch,
-                commit: uploadResult.commit
-            },
-            vercel: {
-                deployUrl: vercelDeployUrl,
-                instructions: 'Click the URL to deploy on Vercel instantly'
-            },
-            timestamp: uploadResult.timestamp
-        });
-        
     } catch (error) {
         console.error('Error in /file endpoint:', error);
+        
+        // Send error response with consistent format
         res.status(500).json({
+            success: false,
             error: 'Server error',
-            message: error.message
+            message: error.message,
+            html: htmlContent,  // Send HTML if we got it before error
+            github: null,
+            vercel: null
         });
     }
 });
@@ -125,6 +163,8 @@ form.append('file',fs.createReadStream(filepath));
     }
     catch(error){
         console.error('Error extracting PDF:',error);
+        // Re-throw the error with more context
+        throw new Error(`Failed to process PDF: ${error.message}`);
     }
 }
 
