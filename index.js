@@ -22,7 +22,7 @@ app.use(express.json()); app.use(cors(
     {
     origin:'*'
 }));
-const port =3000;
+const port = process.env.PORT || 3000;
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads/')
