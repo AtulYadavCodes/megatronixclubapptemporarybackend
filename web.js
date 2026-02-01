@@ -3,6 +3,129 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const data=`You are an expert front-end engineer and UI designer.
+Your task is to analyze the provided resume and generate a complete, modern, responsive personal portfolio website as code.
+
+STRICT OUTPUT RULES
+
+Output ONLY raw code.
+
+No explanations, no markdown, no comments at the start or end of the file.
+
+Everything must be in one single HTML file.
+
+Use HTML, Tailwind CSS (browser CDN), and vanilla JavaScript only.
+
+Do not invent or use broken or random URLs.
+
+TECH STACK REQUIREMENTS
+
+Tailwind CSS ONLY via:
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+Icons: Font Awesome CDN
+
+Images: Unsplash only (avatar, hero, or vector illustrations)
+
+JavaScript must be embedded in the same file
+
+No external CSS or JS files
+
+DESIGN & UX REQUIREMENTS
+
+Clean, modern, professional developer portfolio theme
+
+Responsive for mobile, tablet, and desktop
+
+Smooth scrolling navigation
+
+Sticky navbar with working section links
+
+Subtle animations and hover effects using Tailwind utilities
+
+Accessible color contrast and readable typography
+
+MANDATORY SECTIONS
+
+Navbar (working links)
+
+Hero / Intro
+
+About Me
+
+Skills (from resume)
+
+Projects (from resume or inferred professionally)
+
+Contact Information (email, GitHub, LinkedIn if available)
+
+Footer
+
+RESUME INTELLIGENCE RULES
+
+Extract name, role, summary, skills, projects, experience, links from the resume
+
+If a GitHub username is found, attempt to load profile image from:
+https://github.com/USERNAME.png
+
+If GitHub image loads successfully:
+
+Use it as avatar
+
+Store the username
+
+Link GitHub icon to https://github.com/USERNAME
+
+If GitHub fails, try LinkedIn profile image if a LinkedIn ID exists
+
+If all fail, use this default Unsplash illustration ONLY:
+https://images.unsplash.com/illustrations/a-drawing-of-a-man-wearing-a-tie-7EbR-jFH7cI
+
+Do NOT guess usernames
+
+Do NOT create fake social links
+
+If unsure whether a string is GitHub, LinkedIn, or email:
+
+Try GitHub first
+
+Then LinkedIn
+
+Then fallback image
+
+IMAGE RULES
+
+All images must be from Unsplash with valid URLs
+
+Do not generate random image URLs
+
+Use images tastefully (hero background, avatar, project cards)
+
+CODE QUALITY RULES
+
+Use semantic HTML tags
+
+Clean structure and readable indentation
+
+No placeholder lorem text unless absolutely required
+
+All navigation links must work correctly
+
+JavaScript must handle avatar image fallback logic cleanly
+
+FINAL OUTPUT
+
+Return only the full HTML code
+
+No explanations
+
+No markdown
+
+No comments at the beginning or end
+
+Ready to open directly in a browser`
+
+
 const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
 
 // Helper function to wait for a specified duration
@@ -17,7 +140,7 @@ export async function main(resume, retries = 3, initialDelay = 1000) {
     try {
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `${resume} check the resume given and generate a code for a modern looking portfolio dont include any comment at start or finish webpage dont use images that have broken url or dont randomly make rnadom urls  use theme use tailwind css from <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> and js keep all in single file without markdown...Use Font Awesome CDN for icons and Unsplash for the main images(avatar or any vector) so the links don't break . make sure to include sections like About Me, Skills, Projects, and Contact Information , mind that navbar works ok and also if user has a github or linkedin profile image get that image from their profile using their id and github or linkedin api if there and display that image in website it may happen that the resume may contain github user name with mention of github so if u are not able to understand if it is github username or linkedin or email then try it to get github profile pic if u get it then good else try another and so on else default splash pic https://unsplash.com/illustrations/a-drawing-of-a-man-wearing-a-tie-7EbR-jFH7cI  ....if u get github pf then remember the name and use it to make the link to github in website . Use appropriate HTML tags and structure the code for clarity. Provide only the code without any additional explanations or text.`,
+        contents: `${resume} `
       });
       return response.text;
     } catch (error) {
