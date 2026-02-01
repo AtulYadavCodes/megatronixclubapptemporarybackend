@@ -8,7 +8,7 @@ Your task is to analyze the provided resume and generate a complete, modern, res
 
 STRICT OUTPUT RULES
 
-Output ONLY raw code.
+Output ONLY raw html css js code.
 
 No explanations, no markdown, no comments at the start or end of the file.
 
