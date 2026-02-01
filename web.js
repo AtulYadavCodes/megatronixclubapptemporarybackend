@@ -3,127 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const data=`You are an expert front-end engineer and UI designer.
-Your task is to analyze the provided resume and generate a complete, modern, responsive personal portfolio website as code.
 
-STRICT OUTPUT RULES
-
-Output ONLY  html css js code.
-
-No explanations, no markdown, no comments at the start or end of the file.
-
-Everything must be in one single HTML file.
-
-Use HTML, Tailwind CSS (browser CDN), and vanilla JavaScript only.
-
-Do not invent or use broken or random URLs.
-
-TECH STACK REQUIREMENTS
-
-Tailwind CSS ONLY via:
-<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-Icons: Font Awesome CDN
-
-Images: Unsplash only (avatar, hero, or vector illustrations)
-
-JavaScript must be embedded in the same file
-
-No external CSS or JS files
-
-DESIGN & UX REQUIREMENTS
-
-Clean, modern, professional developer portfolio theme
-
-Responsive for mobile, tablet, and desktop
-
-Smooth scrolling navigation
-
-Sticky navbar with working section links
-
-Subtle animations and hover effects using Tailwind utilities
-
-Accessible color contrast and readable typography
-
-MANDATORY SECTIONS
-
-Navbar (working links)
-
-Hero / Intro
-
-About Me
-
-Skills (from resume)
-
-Projects (from resume or inferred professionally)
-
-Contact Information (email, GitHub, LinkedIn if available)
-
-Footer
-
-RESUME INTELLIGENCE RULES
-
-Extract name, role, summary, skills, projects, experience, links from the resume
-
-If a GitHub username is found, attempt to load profile image from:
-https://github.com/USERNAME.png
-
-If GitHub image loads successfully:
-
-Use it as avatar
-
-Store the username
-
-Link GitHub icon to https://github.com/USERNAME
-
-If GitHub fails, try LinkedIn profile image if a LinkedIn ID exists
-
-If all fail, use this default Unsplash illustration ONLY:
-https://images.unsplash.com/illustrations/a-drawing-of-a-man-wearing-a-tie-7EbR-jFH7cI
-
-Do NOT guess usernames
-
-Do NOT create fake social links
-
-If unsure whether a string is GitHub, LinkedIn, or email:
-
-Try GitHub first
-
-Then LinkedIn
-
-Then fallback image
-
-IMAGE RULES
-
-All images must be from Unsplash with valid URLs
-
-Do not generate random image URLs
-
-Use images tastefully (hero background, avatar, project cards)
-
-CODE QUALITY RULES
-
-Use semantic HTML tags
-
-Clean structure and readable indentation
-
-No placeholder lorem text unless absolutely required
-
-All navigation links must work correctly
-
-JavaScript must handle avatar image fallback logic cleanly
-
-FINAL OUTPUT
-
-Return only the full HTML code
-
-No explanations
-
-No markdown
-
-No comments at the beginning or end
-
-Ready to open directly in a browser`
 
 
 const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY});
@@ -140,7 +20,56 @@ export async function main(resume, retries = 3, initialDelay = 1000) {
     try {
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: `${resume} `
+        contents: `${resume} Analyze the provided resume and generate a single-file modern portfolio website.
+
+Requirements:
+
+Output only raw HTML, CSS (Tailwind via browser CDN), and JavaScript in one file
+
+Use Tailwind only from
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+Use Font Awesome CDN for icons
+
+Use Unsplash images only for avatar or hero visuals (no random or broken URLs)
+
+Do not add comments at the start or end of the file
+
+No markdown, no explanations
+
+Design & Structure:
+
+Clean, modern, professional UI
+
+Responsive layout
+
+Working sticky navbar with smooth scrolling
+
+Sections: Hero, About Me, Skills, Projects, Contact Information
+
+Use semantic HTML and clear structure
+
+Resume Intelligence:
+
+Extract name, role, summary, skills, projects, and links from the resume
+
+If a GitHub username is found, try loading avatar from
+https://github.com/USERNAME.png
+
+If successful, use it as profile image and link GitHub icon
+
+If not, try LinkedIn profile image
+
+If all fail, use this default image only:
+https://images.unsplash.com/illustrations/a-drawing-of-a-man-wearing-a-tie-7EbR-jFH7cI
+
+Do not guess usernames or create fake links
+
+Output:
+
+Return only the complete HTML code
+
+Ready to open directly in a browser `
       });
       return response.text;
     } catch (error) {
